@@ -92,9 +92,28 @@ class Parser(object):
    #     else:
     #        self.error()
     
-    def create_table(self, comand_length):
-        if self.tokens_arr[1].type == 'VAR' and self.tokens_arr[2].type == '(' and self.tokens_arr[comand_length-1].type == ')':
+    def create_table(self, command_length):
+
+        if self.tokens_arr[1].type == 'VAR' and self.tokens_arr[2].type == '(' and self.tokens_arr[command_length-1].type == ')':
             print('Table ' + self.tokens_arr[1].text + ' was created')
+            tablename=self.tokens_arr[1]
+            counter=3             # because we already have CREATE TABLE, VAR , "("
+            for token in self.tokens_arr:
+                if endcomand:
+                    break
+                counter+=1
+                if token.type == ')':
+                    endcomand = True
+            # удалим создание (засунем в массив и выполним)
+
+            creation_array = self.tokens_arr[:counter-1]
+            for i in counter:
+                self.tokens_arr.pop(i)
+
+            #creation......................................................(его не будет)
+
+
+
         else:
             self.error()
 
@@ -136,7 +155,6 @@ class Parser(object):
             self.insert(comand_length)
         if self.tokens_arr[0].type == 'SELECT':
             self.select(comand_length)
-
         if self.tokens_arr[0].type != 'CREATE TABLE' and self.tokens_arr[0].type != 'INSERT INTO' and self.tokens_arr[0].type != 'SELECT':
             self.error()
 
@@ -154,7 +172,7 @@ for token in tokens:
     print('{type: ' + token.type + ' , text: "'+ token.text + '" , pos ' + str(token.pos) + '}')
 
 for token in tokens:
-    if token.type != 'SPACE' :
+    if token.type != 'SPACE':
         comand.append(token)
 
 #for token in comand:
@@ -162,4 +180,5 @@ for token in tokens:
 
 
 parser = Parser(comand)
-parser.start();
+while len(parser.tokens_arr)!=0:
+    parser.start();
