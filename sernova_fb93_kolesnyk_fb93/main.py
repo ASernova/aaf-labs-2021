@@ -27,6 +27,8 @@ TokenPaterns = {
     'VALUES':TokenPatern('VALUES', 'VALUES'),
     'WHERE':TokenPatern('WHERE', 'WHERE'),
     'GROUP_BY':TokenPatern('GROUP_BY', 'GROUP_BY'),
+    'ASC':TokenPatern('ASC', 'ASC'),
+    'DESC':TokenPatern('DESC', 'DESC'),
     'DELETE':TokenPatern('DELETE', 'DELETE'),
     'EQUAL': TokenPatern('EQUAL', '= '),
     'NOT_EQUAL':TokenPatern('NOT_EQUAL', '!='),
@@ -141,8 +143,19 @@ class Parser(object):
         if self.tokens_arr[1].type == 'VAR' or self.tokens_arr[1].type == 'ALL':
             if self.tokens_arr[2].type == 'FROM':
                 if self.tokens_arr[3].type == 'VAR':
-                    
-                    print('Start selection but without real structure we cant predict if it would be successfull')
+                    if self.tokens_arr[4].type != 'WHERE' and self.tokens_arr[4].type != 'ORDER_BY':
+                        print('All ' + self.tokens_arr[1].text + ' was selected from ' + self.tokens_arr[3].text)
+                    if self.tokens_arr[4].type == 'WHERE':
+                        if self.tokens_arr[6].type == 'EQUAL' or self.tokens_arr[6].type == 'LESS' or self.tokens_arr[6].type == 'MORE' or self.tokens_arr[6].type == 'NOT_EQUAL' or self.tokens_arr[6].type == 'MORE_EQUAL' or self.tokens_arr[6].type == 'LESS_EQUAL':
+                        #кастыльный вариант как паттерн, на выходных уберутся жесткие индексы, так как поиск может быть из нескольких колонок/таблиц
+                            if self.tokens_arr[8].type != 'ORDER_BY':
+                                print('All ' + self.tokens_arr[1].text + 'where' + self.tokens_arr[5].text + self.tokens_arr[5].type.lower() + self.tokens_arr[7].text +' was selected from ' + self.tokens_arr[3].text)
+                            if self.tokens_arr[8].type == 'ORDER_BY':
+                                if self.tokens_arr[10].type == 'ASC' or self.tokens_arr[10].type == 'DESC':
+                                    print('All ' + self.tokens_arr[1].text + 'where' + self.tokens_arr[5].text + self.tokens_arr[5].type.lower() + self.tokens_arr[7].text +' was selected from ' + self.tokens_arr[3].text + ' and sorted')
+                    if self.tokens_arr[4].type == 'ORDER_BY':
+                        if self.tokens_arr[6].type == 'ASC' or self.tokens_arr[6].type == 'DESC':
+                            print('All ' + self.tokens_arr[1].text + ' was selected from ' + self.tokens_arr[3].text + 'and sorted')
         else:
             self.error()
 
