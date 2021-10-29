@@ -11,7 +11,7 @@ class Token:
         self.text = text
         self.pos = pos
 
-TokenPaterns = {
+tokensdictionary = {
     'CREATE TABLE':TokenPatern('CREATE TABLE', 'CREATE TABLE'),
     'INDEXED':TokenPatern('INDEXED', 'INDEXED'),
     'COMA':TokenPatern('COMA', ','),
@@ -42,14 +42,15 @@ TokenPaterns = {
     'MAX':TokenPatern('MAX', 'MAX'),
     'AVG':TokenPatern('AVG', 'AVG'),
     'SEMICOLON':TokenPatern('SEMICOLON', ';'),
-    'VAR':TokenPatern('VAR', '[_a-zA-Z0-9]+')
-  
-
+    'VAR':TokenPatern('VAR', '[_a-zA-Z0-9]+'),
+    'INT':TokenPatern('INT', 'int'),
+    'TINYTEXT':TokenPatern('TINYTEXT', 'tinytext')
+    #i td...
 }
 
 
 class Lexer:
-    pos = 0
+    index = 0
     code = ''
     TokenArr = []
 
@@ -59,25 +60,26 @@ class Lexer:
     def getTokenArr(self):
         return self.TokenArr
 
-    def codeanalys(self):
-        try:
-            while self.nexttok():
-                continue
-        except Exception as error:
-            text, pos = error.args
-            print(text + ' ' + str(pos) + ": " + self.code[self.pos:self.pos + 10])
+
+    def CodeToTokens(self):
+        while self.nexttok():
+            continue
+        print("End of the code")
+
 
     def nexttok(self):
-        if self.pos == (len(self.code)):
+        #End of the code
+        if self.index == (len(self.code)):
             return False
-        for tokenpat in TokenPaterns.values():
-            result = re.search('^' + tokenpat.regexp, self.code[self.pos:])
+        for tokenpatern in tokensdictionary.values():
+            result = re.search('^' + tokenpatern.regexp, self.code[self.index:])
             if result:
-                self.pos = self.pos + len(result[0])
+                self.index = self.index + len(result[0])
               #  if token.type != 'SPACE':
-                self.TokenArr.append(Token(tokenpat.type, result[0], self.pos))
+                self.TokenArr.append(Token(tokenpatern.type, result[0], self.index))
                 return True
-        raise Exception('Unknown token on position', self.pos)
+        print('Unknown token on position' + self.index)
+
 
 ### Parser:
 
@@ -95,24 +97,23 @@ class Parser(object):
     #        self.error()
     
     def create_table(self, command_length):
-
-        if self.tokens_arr[1].type == 'VAR' and self.tokens_arr[2].type == '(' and self.tokens_arr[command_length-1].type == ')':
-            print('Table ' + self.tokens_arr[1].text + ' was created')
-            tablename=self.tokens_arr[1]
-            counter=3             # because we already have CREATE TABLE, VAR , "("
+        if self.tokens_arr[1].type == 'VAR' and self.tokens_arr[2].type == '(':
             for token in self.tokens_arr:
-                if endcomand:
-                    break
-                counter+=1
                 if token.type == ')':
-                    endcomand = True
-            # удалим создание (засунем в массив и выполним)
+                    endindex=self.tokens_arr.index(token)
+                    break
 
-            creation_array = self.tokens_arr[:counter-1]
-            for i in counter:
-                self.tokens_arr.pop(i)
+            if endindex:
+                print('Table ' + self.tokens_arr[1].text + ' was created')
+                tablename=self.tokens_arr[1]
+                                                # удалим создание (засунем в массив и выполним)
 
-            #creation......................................................(его не будет)
+                creation_array = self.tokens_arr[:endindex+1]
+                print(len(self.tokens_arr))
+                for i in range(0, endindex+1):
+                    print(self.tokens_arr[0].text)
+                    self.tokens_arr.pop(0)
+                #creation......................................................(его не будет)
 
 
 
@@ -171,13 +172,9 @@ class Parser(object):
         if self.tokens_arr[0].type != 'CREATE TABLE' and self.tokens_arr[0].type != 'INSERT INTO' and self.tokens_arr[0].type != 'SELECT':
             self.error()
 
-b = Lexer('CREATE TABLE Cats(sdjdf, lksd)')
-c = Lexer('INSERT INTO Cats (jndsn) VALUES (skjd, skd, m)')
-d = Lexer('SELECT * FROM sdjfljsdf')
-e = Lexer ('unexpected CREATE TABLE kfksf (sdjf)')
-a = Lexer('SELECT something FROM somewhere WHERE par1 = 15 GROUP_BY par1;')
+b = Lexer('CREATE TABLE Cats(sdjdf, lksd) asd')
 
-b.codeanalys()
+b.CodeToTokens()
 comand = []
 
 tokens = b.getTokenArr()
@@ -187,7 +184,6 @@ for token in tokens:
 for token in tokens:
     if token.type != 'SPACE':
         comand.append(token)
-
 #for token in comand:
 #    print('{type: ' + token.type + ' , text: "'+ token.text + '" , pos ' + str(token.pos) + '}')
 
