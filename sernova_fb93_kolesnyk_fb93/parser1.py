@@ -1,11 +1,14 @@
 from lexer import *
 from table_func import *
-### Parser:
+
+### Parser :
+
+
 
 class Parser(object):
     def __init__(self, comand):
         self.tokens_arr = comand
-
+        tables_arr = []
     def error(self):
         raise Exception('Invalid syntax')
 
@@ -16,9 +19,9 @@ class Parser(object):
     #        self.error()
 
     def create_table(self, command_length):
-
-
+       
         if self.tokens_arr[1].type == 'VAR' and self.tokens_arr[2].type == '(':
+            
             for token in self.tokens_arr:
                 if token.type == ')':
                     endindex=self.tokens_arr.index(token)
@@ -26,7 +29,7 @@ class Parser(object):
 
             if endindex:
                 print('Table ' + self.tokens_arr[1].text + ' was created')
-                tablename=self.tokens_arr[1]
+                tablename=self.tokens_arr[1].text
                 print(endindex)
                 # CREATE cats (id INDEXED, name INDEXED, favourite_food); - patern metodichka
                 columnsname=[]
@@ -47,31 +50,45 @@ class Parser(object):
                     # else:
                     #     self.error()
                     index += 1
+                
                 print(columnsname)
                 print("Indexed"+str(indexedcol))
                 # create_func(columnsname, indexedcol)
 
                 # удалим создание (засунем в массив и выполним)
 
-                table_creation(columnsname, indexedcol) # from file table_func.py
-                print("Table created")
+                #table_creation(columnsname, indexedcol) # from file table_func.py
+                #print("Table created")
                 for i in range(0, endindex + 1):
                     self.tokens_arr.pop(0)
-
+                
+                table = Table(tablename, columnsname, indexedcol)
+                table.show_table()
+                tables_arr.append(table)
         else:
             print("CREATE TABLE TABLENAME (fields INDEXED[optional])")
 
-
-
+            
+            
     def insert(self, comand_length):
+        tablename = ''
         #   INSERT tablename (“2”, “Pushok”, “Fish”)
+       
         if self.tokens_arr[1].type == 'VAR'and self.tokens_arr[2].type == '(' and self.tokens_arr[3].type == 'STR':
             for token in self.tokens_arr:
                 if token.type == ')':
                     endindex=self.tokens_arr.index(token)
+                    print()
                     break
             tablename = self.tokens_arr[1].text
-
+            for j in range(0, len(tables_arr)):
+                print(j)
+                if tables_arr[j].tablename == tablename :
+                    curr_table = tables_arr[j]
+     #               print(curr_table.tablename + ' was found')
+                    break
+                else:
+                    self.error()
             if endindex:
                 values=[]
                 print(endindex)
@@ -89,8 +106,12 @@ class Parser(object):
                             self.error()
             for i in range(len(values)):
                 values[i]=values[i].replace("\"", "")
-            print(values)
-            print("inserted?")
+     #       print(values)
+            curr_table.insertion(values)
+            curr_table.show_table()
+            
+
+    #        print("inserted?")
             for i in range(0, endindex + 1):
                 self.tokens_arr.pop(0)
 
@@ -139,9 +160,9 @@ class Parser(object):
             self.insert(comand_length)
         elif self.tokens_arr[0].type == 'SELECT':
             self.select(comand_length)
-        elif self.tokens_arr.type=="SEMICOLON":
+        elif self.tokens_arr[0].type=="SEMICOLON":
             return "end"
-        elif self.tokens_arr.len==0:
+        elif len(self.tokens_arr) ==0:
             return "empty"
         #self.tokens_arr[0].type != 'CREATE TABLE' and self.tokens_arr[0].type != 'INSERT INTO' and self.tokens_arr[0].type != 'SELECT'
         else :

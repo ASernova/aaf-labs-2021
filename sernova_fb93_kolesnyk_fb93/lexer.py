@@ -1,5 +1,4 @@
-import re
-#lexer+tokens
+import re  
 class TokenPatern:
     def __init__(self, type, regexp):
         self.type = type
@@ -77,3 +76,4 @@ class Lexer:
                 self.TokenArr.append(Token(tokenpatern.type, result[0], self.index))
                 return True
         print('Unknown token on position' + self.index)
+
