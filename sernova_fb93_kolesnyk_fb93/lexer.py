@@ -19,7 +19,7 @@ tokensdictionary = {
     ')':TokenPatern(')', '\\)'),
     '[':TokenPatern('[', '\\['),
     ']':TokenPatern(']', '\\]'),
-    'NUMBER': TokenPatern('NUMBER', '[0-9]([0-9.]*)' ),
+    # 'NUM': TokenPatern('NUM', '[0-9]([0-9.]*)' ),
     'SELECT':TokenPatern('SELECT', 'SELECT'),
     'FROM':TokenPatern('FROM', 'FROM'),
     'INSERT':TokenPatern('INSERT', 'INSERT'),
@@ -42,7 +42,8 @@ tokensdictionary = {
     'AVG':TokenPatern('AVG', 'AVG'),
     'SEMICOLON':TokenPatern('SEMICOLON', ';'),
     'VAR':TokenPatern('VAR', '[_a-zA-Z0-9]+'),
-    'STR':TokenPatern('STR', '\"+[a-zA-Z0-9]+\"')
+    'STR':TokenPatern('STR', '\"+[a-zA-Z0-9]+\"'),
+    'EXIT':TokenPatern('EXIT', "EXIT")
 }
 
 
@@ -51,18 +52,27 @@ class Lexer:
     code = ''
     TokenArr = []
 
+    def __init__(self):
+        self.code=""
+
     def __init__(self, code):
         self.code = code
 
     def getTokenArr(self):
         return self.TokenArr
 
+    def NewCode(self,code):
+        self.code = code
+
 
     def CodeToTokens(self):
         while self.nexttok():
             continue
-        print("End of the code")
-
+        comand = []
+        for token in self.TokenArr:
+            if token.type != 'SPACE':
+                comand.append(token)
+        return comand
 
     def nexttok(self):
         #End of the code
@@ -75,5 +85,5 @@ class Lexer:
               #  if token.type != 'SPACE':
                 self.TokenArr.append(Token(tokenpatern.type, result[0], self.index))
                 return True
-        print('Unknown token on position' + self.index)
+        raise Exception('Unknown token on position ' + str(self.index))
 

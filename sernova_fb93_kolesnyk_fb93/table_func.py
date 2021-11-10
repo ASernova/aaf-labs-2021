@@ -9,7 +9,6 @@ class Column:
         self.indexed = indexed
 
 class Row:
-
     
     def __init__(self, val_arr):
         self.values = []
@@ -33,12 +32,13 @@ class Table:
             if i in index_arr:
                 index_check = 1
             self.columns.append(Column(columns_arr[i], index_check))
-
+    def get_name(self):
+        return self.tablename
     def check_repeat(self, value, i):
         for j in range (0, len(self.rows)):
-                       row = self.rows[j]
-                       if row.values[i] == value:
-                           return 1
+            row = self.rows[j]
+            if row.values[i] == value:
+                return 1
         return 0
 
     def show_rows(self):
@@ -57,7 +57,7 @@ class Table:
         check = 0 
         
         if len(row_arr)!=len(self.columns):
-            print('invalind length')
+            raise Exception('invalid length!')
         else: 
            
             row_values = []
@@ -72,8 +72,7 @@ class Table:
                         row_values.append(row_arr[i])
                     else:
                         err = 1
-                        print('indexed field must be uniaque!')
-            
-            
+                        raise Exception('indexed field must be uniaque!')
+
             if err !=1:
                 self.rows.append(Row(row_values))
