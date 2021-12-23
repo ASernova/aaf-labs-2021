@@ -76,11 +76,13 @@ class Table:
 
 
 def select_in_table(fields, tablen, where_statement, order_statement):
+    print("Select")
     print(fields)
-    print(tablen.text)
+    print(tablen)
     print(where_statement)
     print(order_statement)
 
 def del_func(table,cond):
+    print("Del")
     print(table)
     print(cond)

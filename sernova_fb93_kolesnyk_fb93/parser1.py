@@ -40,8 +40,12 @@ class Parser(object):
             else:
                 if len(self.tokens_arr)>=2:
                     print("Unknown command "+str(self.tokens_arr[0].text)+ " "+ str(self.tokens_arr[1].text) +" use commands (only uppercase for commands)\'CREATE TABLE\' , \'INSERT\', \'SELECT\', \'EXIT\' ")
+                    for i in range(0, len(self.tokens_arr)):
+                        self.tokens_arr.pop(0)
                 elif len(self.tokens_arr)==1:
                     print("Unknown command "+str(self.tokens_arr[0].text)+ " use commands (only uppercase for commands)\'CREATE TABLE\' , \'INSERT\', \'SELECT\', \'EXIT\' ")
+                    for i in range(0, len(self.tokens_arr)):
+                        self.tokens_arr.pop(0)
 
     def create_table(self, command_length):
         if command_length<4:
@@ -177,6 +181,7 @@ class Parser(object):
             for i in range(0,comand_length):
                 self.tokens_arr.pop(0)
             return
+        endindex = len(self.tokens_arr) - 1
         for token in self.tokens_arr:
             if token.type == 'CREATE TABLE':
                 endindex=self.tokens_arr.index(token)-1
@@ -187,17 +192,14 @@ class Parser(object):
             elif token.type == 'SELECT' and self.tokens_arr.index(token)!=0:
                 endindex=self.tokens_arr.index(token)-1
                 break
-            elif token.type == "EXIT":
+            elif token.type == 'EXIT':
                 endindex = self.tokens_arr.index(token)-1
                 break
-            elif token.type == "SEMICOLON":
+            elif token.type == 'SEMICOLON':
                 endindex=self.tokens_arr.index(token)-1
                 break
-            elif token.type == "DELETE":
+            elif token.type == 'DELETE':
                 endindex=self.tokens_arr.index(token)-1
-                break
-            else:
-                endindex=len(self.tokens_arr)-1
                 break
 
         if self.tokens_arr[1].type == 'ALL':
@@ -207,7 +209,7 @@ class Parser(object):
                     table_name = self.tokens_arr[3].text
                     for t in tables_arr:
                         if t.tablename == table_name:
-                            table = t
+                            table = self.tokens_arr[3]
                             break
                     if table:# Если таблица есть в массиве с таблицами
                         if endindex >= 7:
@@ -217,7 +219,7 @@ class Parser(object):
                                 if endindex > 7:
                                     if self.tokens_arr[8].type == 'ORDER_BY':
                                         if self.tokens_arr[9].type == 'VAR' and (self.tokens_arr[10].type == 'ASC' or self.tokens_arr[10].type == 'DESC'):
-                                            order=[self.tokens_arr[9].type, self.tokens_arr[10].type == 'DESC']
+                                            order=[self.tokens_arr[9], self.tokens_arr[10]]
                                             select_in_table(self.tokens_arr[1].type, table, where, order)
                                         else:
                                             print("ORDER_BY column_name ASC|DESC")
@@ -243,7 +245,7 @@ class Parser(object):
                     print("Use VAR for tablename")
             else:
                 print("U didnt selected table\n SELECT ( * | column_name [, ...])  FROM table_name # [WHERE condition]   [ORDER_BY column_name [(ASC|DESC)] [, ...] ];")
-        elif self.tokens_arr[1].type=="VAR":
+        elif self.tokens_arr[1].type == "VAR":
             fromindex=False
             for token in self.tokens_arr:
                 if token.type == 'FROM':
@@ -285,7 +287,7 @@ class Parser(object):
                         if index+6<=endindex:
                             if self.tokens_arr[index+4].type == 'ORDER_BY':
                                 if self.tokens_arr[index+5].type == 'VAR' and (
-                                        self.tokens_arr[index+6].type == 'ASC' or self.tokens_arr[10].type == 'DESC'):
+                                        self.tokens_arr[index+6].type == 'ASC' or self.tokens_arr[index+6].type == 'DESC'):
                                     order = [self.tokens_arr[index+5], self.tokens_arr[index+6]]
                                     select_in_table(fields_arr, table, where, order)
                                     for i in range(0, endindex + 1):
@@ -329,6 +331,7 @@ class Parser(object):
                 self.tokens_arr.pop(0)
             return
         elif self.tokens_arr[1].type == 'VAR':
+            endindex = len(self.tokens_arr) - 1
             for token in self.tokens_arr:
                 if token.type == 'CREATE TABLE':
                     endindex = self.tokens_arr.index(token) - 1
@@ -348,13 +351,11 @@ class Parser(object):
                 elif token.type == "DELETE" and self.tokens_arr.index(token) != 0:
                     endindex = self.tokens_arr.index(token) - 1
                     break
-                else:
-                    endindex = len(self.tokens_arr) - 1
-                    break
+
             table_name=self.tokens_arr[1].text
             for t in tables_arr:
                 if t.tablename == table_name:
-                    table = t
+                    table = self.tokens_arr[3]
                     break
             if table:
                 if endindex==1:
@@ -364,7 +365,7 @@ class Parser(object):
                         if self.tokens_arr[3].type == 'VAR' and self.tokens_arr[5].type == 'STR' and \
                         (self.tokens_arr[4].type == 'EQUAL' or self.tokens_arr[4].type == 'NOT_EQUAL'):
                             condition=[self.tokens_arr[3], self.tokens_arr[4], self.tokens_arr[5]]
-                            del_func(table_name,condition)
+                            del_func(self.tokens_arr[1],condition)
                         else:
                             print("Error in WHERE condition, WHERE field==/!=\"value\"")
                     else:
