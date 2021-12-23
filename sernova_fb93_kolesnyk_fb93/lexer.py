@@ -24,6 +24,7 @@ tokensdictionary = {
     'FROM':TokenPatern('FROM', 'FROM'),
     'INSERT':TokenPatern('INSERT', 'INSERT'),
     'WHERE':TokenPatern('WHERE', 'WHERE'),
+    'EXIT': TokenPatern('EXIT', "EXIT"),
     'ORDER_BY':TokenPatern('ORDER_BY', 'ORDER_BY'),
     'ASC':TokenPatern('ASC', 'ASC'),
     'DESC':TokenPatern('DESC', 'DESC'),
@@ -35,8 +36,7 @@ tokensdictionary = {
     'COUNT_DISTINCT':TokenPatern('COUNT_DISTINCT', 'COUNT_DISTINCT'),
     'SEMICOLON':TokenPatern('SEMICOLON', ';'),
     'VAR':TokenPatern('VAR', '[_a-zA-Z0-9]+'),
-    'STR':TokenPatern('STR', '\"+[a-zA-Z0-9]+\"'),
-    'EXIT':TokenPatern('EXIT', "EXIT")
+    'STR':TokenPatern('STR', '\"+[a-zA-Z0-9]+\"')
 }
 
 

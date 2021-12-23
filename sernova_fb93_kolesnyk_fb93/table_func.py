@@ -70,15 +70,17 @@ class Table:
                     if check == 0:
                         row_values.append(row_arr[i])
                     else:
-                        err = 1
-                        raise Exception('indexed field must be uniaque!')
-
-            if err !=1:
-                self.rows.append(Row(row_values))
+                        print('indexed field must be uniaque!')
+                        return
+            self.rows.append(Row(row_values))
 
 
 def select_in_table(fields, tablen, where_statement, order_statement):
     print(fields)
-    print(tablen)
+    print(tablen.text)
     print(where_statement)
     print(order_statement)
+
+def del_func(table,cond):
+    print(table)
+    print(cond)

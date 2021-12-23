@@ -17,34 +17,44 @@ class Parser(object):
         self.tokens_arr = comm_array
 
     def start(self):
-        comand_length = len(self.tokens_arr)
-        if self.tokens_arr[0].type == 'CREATE TABLE':
-            self.create_table(comand_length)
-        elif self.tokens_arr[0].type == 'INSERT':
-            self.insert(comand_length)
-        elif self.tokens_arr[0].type == 'SELECT':
-            self.select(comand_length)
-        elif self.tokens_arr[0].type == "EXIT":
-            print("exit")
-            sys.exit()
-        elif self.tokens_arr[0].type=="SEMICOLON":
-            return "end"
-        elif len(self.tokens_arr) ==0:
-            print("empty")
-        else:
-            print("Unknown command "+str(self.tokens_arr[0].text)+ " "+ str(self.tokens_arr[1].text) +" use commands (only uppercase for commands)\'CREATE TABLE\' , \'INSERT\', \'SELECT\', \'EXIT\' ")
-
+        if len(self.tokens_arr)==0:
+            print("Empty!")
+        while(len(self.tokens_arr)!=0):
+            if self.tokens_arr[0].type == 'CREATE TABLE':
+                self.create_table(len(self.tokens_arr))
+            elif self.tokens_arr[0].type == 'INSERT':
+                self.insert(len(self.tokens_arr))
+            elif self.tokens_arr[0].type == 'SELECT':
+                self.select(len(self.tokens_arr))
+            elif self.tokens_arr[0].type == 'DELETE':
+                self.delete(len(self.tokens_arr))
+            elif self.tokens_arr[0].type == "EXIT":
+                print("exit")
+                sys.exit()
+            elif self.tokens_arr[0].type=="SEMICOLON":
+                print("Semicolon")
+                self.tables_arr = []
+                return
+            elif len(self.tokens_arr) == 0:
+                print("empty")
+            else:
+                if len(self.tokens_arr)>=2:
+                    print("Unknown command "+str(self.tokens_arr[0].text)+ " "+ str(self.tokens_arr[1].text) +" use commands (only uppercase for commands)\'CREATE TABLE\' , \'INSERT\', \'SELECT\', \'EXIT\' ")
+                elif len(self.tokens_arr)==1:
+                    print("Unknown command "+str(self.tokens_arr[0].text)+ " use commands (only uppercase for commands)\'CREATE TABLE\' , \'INSERT\', \'SELECT\', \'EXIT\' ")
 
     def create_table(self, command_length):
         if command_length<4:
             print("Pattern: CREATE TABLE tablename (field [INDEXED],...)")
+            for i in range(0, command_length):
+                self.tokens_arr.pop(0)
+            return
         elif self.tokens_arr[1].type == 'VAR' and self.tokens_arr[2].type == '(':
-            
+            endindex = False
             for token in self.tokens_arr:
                 if token.type == ')':
                     endindex=self.tokens_arr.index(token)
                     break
-
             if endindex:
                 tablename=self.tokens_arr[1].text
                 # CREATE cats (id INDEXED, name INDEXED, favourite_food); - patern metodichka
@@ -64,45 +74,65 @@ class Parser(object):
                     elif self.tokens_arr[i].type == "VAR" and (self.tokens_arr[i + 1].type == "COMA" or self.tokens_arr[i + 1].type == ")"):
                         columnsname.append(self.tokens_arr[i].text)
                     else:
-                        raise Exception("Pattern: CREATE TABLE tablename (field [INDEXED],...)")
+                        for i in range(0, endindex + 1):
+                            self.tokens_arr.pop(0)
+                        print("Pattern: CREATE TABLE tablename (field [INDEXED],...)")
+                        return
                     i+=2
                     index += 1
                 print("Fields: "+str(columnsname))
                 print("Indexed"+str(indexedcol))
                 # удалим создание (засунем в массив и выполним)
-                for i in range(0, endindex + 1):
-                    self.tokens_arr.pop(0)
                 for table in tables_arr:
                     if table.get_name()==tablename:
                         print('Table with this name already exists:')
-                        return False
+                        for i in range(0, endindex + 1):
+                            self.tokens_arr.pop(0)
+                        return
                 table = Table(tablename, columnsname, indexedcol)
                 table.show_table()
                 tables_arr.append(table)
             else:
-                raise Exception('Invalid syntax in CREATE\n u didnt close parentheses')
+                print('Invalid syntax in CREATE\n u didnt close parentheses')
+                for i in range(0, command_length):
+                    self.tokens_arr.pop(0)
+                return
         else:
-            raise Exception('Invalid syntax in CREATE\n syntax: CREATE TABLE tablename (field [INDEXED],...)')
+            print('Invalid syntax in CREATE\n syntax: CREATE TABLE tablename (field [INDEXED],...)')
+            for i in range(0, command_length):
+                self.tokens_arr.pop(0)
+            return
+        for i in range(0, endindex + 1):
+            self.tokens_arr.pop(0)
+
 
             
             
     def insert(self, comand_length):
         tablename = ''
         #   INSERT tablename (“2”, “Pushok”, “Fish”)
-       
-        if self.tokens_arr[1].type == 'VAR'and self.tokens_arr[2].type == '(' and self.tokens_arr[3].type == 'STR':
+        if comand_length<5:
+            print("Pattern: INSERT tablename (\"fields\")")
+            for i in range(0, comand_length):
+                self.tokens_arr.pop(0)
+            return
+        elif self.tokens_arr[1].type == 'VAR'and self.tokens_arr[2].type == '(' and self.tokens_arr[3].type == 'STR':
             for token in self.tokens_arr:
                 if token.type == ')':
                     endindex=self.tokens_arr.index(token)
                     break
             tablename = self.tokens_arr[1].text
+            curr_table=False
             for j in range(0, len(tables_arr)):
                 if tables_arr[j].tablename == tablename :
                     curr_table = tables_arr[j]
-     #               print(curr_table.tablename + ' was found')
+    #               print(curr_table.tablename + ' was found')
                     break
                 else:
-                    raise Exception('No table with name ' + tablename)
+                    print('No table with name ' + tablename)
+                    for i in range(0, comand_length):
+                        self.tokens_arr.pop(0)
+                    return
             if endindex:
                 values=[]
                 for i in range(3, endindex):
@@ -110,12 +140,18 @@ class Parser(object):
                         if self.tokens_arr[i].type=="STR":
                             values.append(self.tokens_arr[i].text)
                         else:
-                            raise Exception('Invalid syntax in INSERT\n syntax: INSERT tablename (“str”...)')
+                            print('Invalid syntax in INSERT\n syntax: INSERT tablename (“str”...)')
+                            for i in range(0, endindex+1):
+                                self.tokens_arr.pop(0)
+                            return
                     else:
                         if self.tokens_arr[i].type == "COMA":
                             continue
                         else:
-                            raise Exception('Invalid syntax in INSERT\n syntax: INSERT tablename (“str”...)')
+                            print('Invalid syntax in INSERT\n syntax: INSERT tablename (“str”...)')
+                            for i in range(0, endindex+1):
+                                self.tokens_arr.pop(0)
+
                 for i in range(len(values)):
                     values[i]=values[i].replace("\"", "")
                 curr_table.insertion(values)
@@ -123,15 +159,24 @@ class Parser(object):
                 for i in range(0, endindex + 1):
                     self.tokens_arr.pop(0)
             else:
-                raise Exception('Invalid syntax in INSERT\n u didnt close parentheses')
+                print('Invalid syntax in INSERT\n u didnt close parentheses')
+                for i in range(0, endindex + 1):
+                    self.tokens_arr.pop(0)
         else:
-            raise Exception('Invalid syntax in INSERT\n syntax: INSERT tablename (“str”...)')
+            print('Invalid syntax in INSERT\n')
+            for i in range(0, comand_length):
+                self.tokens_arr.pop(0)
 
     def select(self, comand_length):
 #   SELECT ( * | column_name [, ...])  FROM table_name # [WHERE condition]   [ORDER_BY column_name [(ASC|DESC)] [, ...] ];
         endindex=0
         where=False
         order=False
+        if comand_length<4:
+            print("Error in select \n SELECT ( * | column_name [, ...])  FROM table_name # [WHERE condition]   [ORDER_BY column_name ASC|DESC")
+            for i in range(0,comand_length):
+                self.tokens_arr.pop(0)
+            return
         for token in self.tokens_arr:
             if token.type == 'CREATE TABLE':
                 endindex=self.tokens_arr.index(token)-1
@@ -175,9 +220,9 @@ class Parser(object):
                                             order=[self.tokens_arr[9].type, self.tokens_arr[10].type == 'DESC']
                                             select_in_table(self.tokens_arr[1].type, table, where, order)
                                         else:
-                                            print("ORDER_BY column_name [(ASC|DESC)]")
+                                            print("ORDER_BY column_name ASC|DESC")
                                     else:
-                                        print("After where ORDER_BY column_name [(ASC|DESC)]")
+                                        print("After where ORDER_BY column_name ASC|DESC")
                                 else: select_in_table(self.tokens_arr[1].type, table, where, order)
                             else:
                                 print("Error in where:   Where field ==/!= \"value\"")
@@ -187,9 +232,9 @@ class Parser(object):
                                     order=[self.tokens_arr[5], self.tokens_arr[6]]
                                     select_in_table(self.tokens_arr[1].type, table, where, order)
                                 else:
-                                    print("ORDER_BY column_name (ASC|DESC)")
+                                    print("ORDER_BY column_name ASC|DESC")
                             else:
-                                print("ORDER_BY column_name [(ASC|DESC)]")
+                                print("ORDER_BY column_name ASC|DESC")
                         else:
                             select_in_table(self.tokens_arr[1].type, table, where, order)
                     else:
@@ -198,7 +243,6 @@ class Parser(object):
                     print("Use VAR for tablename")
             else:
                 print("U didnt selected table\n SELECT ( * | column_name [, ...])  FROM table_name # [WHERE condition]   [ORDER_BY column_name [(ASC|DESC)] [, ...] ];")
-        # some fields
         elif self.tokens_arr[1].type=="VAR":
             fromindex=False
             for token in self.tokens_arr:
@@ -266,7 +310,11 @@ class Parser(object):
                         print("ORDER_BY column_name [(ASC|DESC)]")
             else:
                 print(f"table named {table_name} not found ")
-
+                for i in range(0, comand_length):
+                    self.tokens_arr.pop(0)
+                return
+        else:
+            print("* or fieldname")
         for i in range(0, endindex + 1):
             self.tokens_arr.pop(0)
 
@@ -274,12 +322,34 @@ class Parser(object):
         table_name=False
         condition="ALL"
         endindex = 0
+        table=False
         if comand_length < 2:
-            print("Pattern: DELETE table_name [WHERE condition];")
+            print("Pattern: DELETE table_name [WHERE condition] condition:field ==/!= \"str\"")
+            for i in range(0, comand_length):
+                self.tokens_arr.pop(0)
+            return
         elif self.tokens_arr[1].type == 'VAR':
             for token in self.tokens_arr:
-                if token.type == ')':
-                    endindex = self.tokens_arr.index(token)
+                if token.type == 'CREATE TABLE':
+                    endindex = self.tokens_arr.index(token) - 1
+                    break
+                elif token.type == 'INSERT':
+                    endindex = self.tokens_arr.index(token) - 1
+                    break
+                elif token.type == 'SELECT':
+                    endindex = self.tokens_arr.index(token) - 1
+                    break
+                elif token.type == "EXIT":
+                    endindex = self.tokens_arr.index(token) - 1
+                    break
+                elif token.type == "SEMICOLON":
+                    endindex = self.tokens_arr.index(token) - 1
+                    break
+                elif token.type == "DELETE" and self.tokens_arr.index(token) != 0:
+                    endindex = self.tokens_arr.index(token) - 1
+                    break
+                else:
+                    endindex = len(self.tokens_arr) - 1
                     break
             table_name=self.tokens_arr[1].text
             for t in tables_arr:
@@ -287,6 +357,26 @@ class Parser(object):
                     table = t
                     break
             if table:
-                c=0
+                if endindex==1:
+                    del_func(self.tokens_arr[1], condition)
+                elif endindex==5:
+                    if self.tokens_arr[2].type == 'WHERE':
+                        if self.tokens_arr[3].type == 'VAR' and self.tokens_arr[5].type == 'STR' and \
+                        (self.tokens_arr[4].type == 'EQUAL' or self.tokens_arr[4].type == 'NOT_EQUAL'):
+                            condition=[self.tokens_arr[3], self.tokens_arr[4], self.tokens_arr[5]]
+                            del_func(table_name,condition)
+                        else:
+                            print("Error in WHERE condition, WHERE field==/!=\"value\"")
+                    else:
+                        print("After table_name have to be [WHERE condition]")
+                else:
+                    print("You can add only WHERE field==/!=\"value\"")
+            else:
+                print(f"No table with name {table_name}")
+        else:
+            print("use var to set tablename")
+            for i in range(0, comand_length):
+                self.tokens_arr.pop(0)
+            return
         for i in range(0, endindex + 1):
             self.tokens_arr.pop(0)

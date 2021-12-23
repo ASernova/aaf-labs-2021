@@ -5,17 +5,11 @@ from lexer import *
 
 lex = Lexer()
 parser = Parser()
+#example CREATE TABLE qq(first INDEXED, second) INSERT qq("Kolesnyk", "Andrii") INSERT qq("Sernova", "Asya") INSERT qq("Stolovych", "Mykhailo") SELECT * FROM qq WHERE first==Kolesnyk
 while(True):
     b=input("Enter command: ")
     lex.NewCode(b)
     commands = lex.CodeToTokens()
     parser.parse(commands)
     parser.start()
-
-    # while len(parser.tokens_arr)!=0:
-    #     for token in parser.tokens_arr:
-    #         if token.type==";" or token.type=="EXIT":
-    #             indx=parser.tokens_arr.index(token)
-    #             while parser.tokens_arr[indx+1]:
-    #                 parser.tokens_arr.pop[indx+1]
 
