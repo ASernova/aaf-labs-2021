@@ -23,23 +23,16 @@ tokensdictionary = {
     'SELECT':TokenPatern('SELECT', 'SELECT'),
     'FROM':TokenPatern('FROM', 'FROM'),
     'INSERT':TokenPatern('INSERT', 'INSERT'),
-    'VALUES':TokenPatern('VALUES', 'VALUES'),
     'WHERE':TokenPatern('WHERE', 'WHERE'),
-    'GROUP_BY':TokenPatern('GROUP_BY', 'GROUP_BY'),
+    'ORDER_BY':TokenPatern('ORDER_BY', 'ORDER_BY'),
     'ASC':TokenPatern('ASC', 'ASC'),
     'DESC':TokenPatern('DESC', 'DESC'),
     'DELETE':TokenPatern('DELETE', 'DELETE'),
-    'EQUAL': TokenPatern('EQUAL', '= '),
+    'EQUAL': TokenPatern('EQUAL', '=='),
     'NOT_EQUAL':TokenPatern('NOT_EQUAL', '!='),
-    'MORE_EQUAL':TokenPatern('MORE_EQUAL', '>='),
-    'LESS_EQUAL': TokenPatern('LESS_EQUAL', '<='),
-    'LESS':TokenPatern('LESS', '<'),
-    'MORE':TokenPatern('MORE', '>'),
     'ALL':TokenPatern('ALL', '\\*'),
     'COUNT':TokenPatern('COUNT', 'COUNT'),
     'COUNT_DISTINCT':TokenPatern('COUNT_DISTINCT', 'COUNT_DISTINCT'),
-    'MAX':TokenPatern('MAX', 'MAX'),
-    'AVG':TokenPatern('AVG', 'AVG'),
     'SEMICOLON':TokenPatern('SEMICOLON', ';'),
     'VAR':TokenPatern('VAR', '[_a-zA-Z0-9]+'),
     'STR':TokenPatern('STR', '\"+[a-zA-Z0-9]+\"'),
@@ -55,23 +48,27 @@ class Lexer:
     def __init__(self):
         self.code=""
 
-    def __init__(self, code):
-        self.code = code
+    # def __init__(self, code):
+    #     self.code = code
 
     def getTokenArr(self):
         return self.TokenArr
 
     def NewCode(self,code):
         self.code = code
+        self.TokenArr = []
 
 
     def CodeToTokens(self):
+        self.index = 0
         while self.nexttok():
             continue
         comand = []
         for token in self.TokenArr:
             if token.type != 'SPACE':
                 comand.append(token)
+        for i in range(len(self.TokenArr)):
+            self.TokenArr.pop(0)
         return comand
 
     def nexttok(self):
@@ -85,5 +82,5 @@ class Lexer:
               #  if token.type != 'SPACE':
                 self.TokenArr.append(Token(tokenpatern.type, result[0], self.index))
                 return True
-        raise Exception('Unknown token on position ' + str(self.index))
+        print('Unknown token on position ' + str(self.index))
 

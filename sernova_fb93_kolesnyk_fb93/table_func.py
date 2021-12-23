@@ -21,7 +21,6 @@ class Table:
     columns = []
     rows = []
     tablename = ''
-
     
     def __init__(self, name, columns_arr, index_arr):
         self.tablename = name
@@ -76,3 +75,10 @@ class Table:
 
             if err !=1:
                 self.rows.append(Row(row_values))
+
+
+def select_in_table(fields, tablen, where_statement, order_statement):
+    print(fields)
+    print(tablen)
+    print(where_statement)
+    print(order_statement)

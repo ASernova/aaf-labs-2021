@@ -9,19 +9,36 @@ class Parser(object):
         self.tokens_arr = []
         tables_arr = []
 
-    def __init__(self, comand):
-        self.tokens_arr = comand
-        tables_arr = []
+    # def __init__(self, comand):
+    #     self.tokens_arr = comand
+    #     tables_arr = []
 
-    def parse(self,com):
-        self.tokens_arr = com
+    def parse(self, comm_array):
+        self.tokens_arr = comm_array
 
-
+    def start(self):
+        comand_length = len(self.tokens_arr)
+        if self.tokens_arr[0].type == 'CREATE TABLE':
+            self.create_table(comand_length)
+        elif self.tokens_arr[0].type == 'INSERT':
+            self.insert(comand_length)
+        elif self.tokens_arr[0].type == 'SELECT':
+            self.select(comand_length)
+        elif self.tokens_arr[0].type == "EXIT":
+            print("exit")
+            sys.exit()
+        elif self.tokens_arr[0].type=="SEMICOLON":
+            return "end"
+        elif len(self.tokens_arr) ==0:
+            print("empty")
+        else:
+            print("Unknown command "+str(self.tokens_arr[0].text)+ " "+ str(self.tokens_arr[1].text) +" use commands (only uppercase for commands)\'CREATE TABLE\' , \'INSERT\', \'SELECT\', \'EXIT\' ")
 
 
     def create_table(self, command_length):
-       
-        if self.tokens_arr[1].type == 'VAR' and self.tokens_arr[2].type == '(':
+        if command_length<4:
+            print("Pattern: CREATE TABLE tablename (field [INDEXED],...)")
+        elif self.tokens_arr[1].type == 'VAR' and self.tokens_arr[2].type == '(':
             
             for token in self.tokens_arr:
                 if token.type == ')':
@@ -44,8 +61,7 @@ class Parser(object):
                         columnsname.append(self.tokens_arr[i].text)
                         indexedcol.append(index)
 
-                    elif self.tokens_arr[i].type == "VAR" and (
-                            self.tokens_arr[i + 1].type == "COMA" or self.tokens_arr[i + 1].type == ")"):
+                    elif self.tokens_arr[i].type == "VAR" and (self.tokens_arr[i + 1].type == "COMA" or self.tokens_arr[i + 1].type == ")"):
                         columnsname.append(self.tokens_arr[i].text)
                     else:
                         raise Exception("Pattern: CREATE TABLE tablename (field [INDEXED],...)")
@@ -58,7 +74,7 @@ class Parser(object):
                     self.tokens_arr.pop(0)
                 for table in tables_arr:
                     if table.get_name()==tablename:
-                        raise Exception('Table with this name already exists:')
+                        print('Table with this name already exists:')
                         return False
                 table = Table(tablename, columnsname, indexedcol)
                 table.show_table()
@@ -112,40 +128,165 @@ class Parser(object):
             raise Exception('Invalid syntax in INSERT\n syntax: INSERT tablename (“str”...)')
 
     def select(self, comand_length):
+#   SELECT ( * | column_name [, ...])  FROM table_name # [WHERE condition]   [ORDER_BY column_name [(ASC|DESC)] [, ...] ];
+        endindex=0
+        where=False
+        order=False
+        for token in self.tokens_arr:
+            if token.type == 'CREATE TABLE':
+                endindex=self.tokens_arr.index(token)-1
+                break
+            elif token.type == 'INSERT':
+                endindex=self.tokens_arr.index(token)-1
+                break
+            elif token.type == 'SELECT' and self.tokens_arr.index(token)!=0:
+                endindex=self.tokens_arr.index(token)-1
+                break
+            elif token.type == "EXIT":
+                endindex = self.tokens_arr.index(token)-1
+                break
+            elif token.type == "SEMICOLON":
+                endindex=self.tokens_arr.index(token)-1
+                break
+            elif token.type == "DELETE":
+                endindex=self.tokens_arr.index(token)-1
+                break
+            else:
+                endindex=len(self.tokens_arr)-1
+                break
 
-        if self.tokens_arr[1].type == 'VAR' or self.tokens_arr[1].type == 'ALL':
+        if self.tokens_arr[1].type == 'ALL':
             if self.tokens_arr[2].type == 'FROM':
+                table=False
                 if self.tokens_arr[3].type == 'VAR':
-                    if self.tokens_arr[4].type != 'WHERE' and self.tokens_arr[4].type != 'ORDER_BY':
-                        print('All ' + self.tokens_arr[1].text + ' was selected from ' + self.tokens_arr[3].text)
-                    if self.tokens_arr[4].type == 'WHERE':
-                        if self.tokens_arr[6].type == 'EQUAL' or self.tokens_arr[6].type == 'LESS' or self.tokens_arr[6].type == 'MORE' or self.tokens_arr[6].type == 'NOT_EQUAL' or self.tokens_arr[6].type == 'MORE_EQUAL' or self.tokens_arr[6].type == 'LESS_EQUAL':
-                        #кастыльный вариант как паттерн, на выходных уберутся жесткие индексы, так как поиск может быть из нескольких колонок/таблиц
-                            if self.tokens_arr[8].type != 'ORDER_BY':
-                                print('All ' + self.tokens_arr[1].text + 'where' + self.tokens_arr[5].text + self.tokens_arr[5].type.lower() + self.tokens_arr[7].text +' was selected from ' + self.tokens_arr[3].text)
-                            if self.tokens_arr[8].type == 'ORDER_BY':
-                                if self.tokens_arr[10].type == 'ASC' or self.tokens_arr[10].type == 'DESC':
-                                    print('All ' + self.tokens_arr[1].text + 'where' + self.tokens_arr[5].text + self.tokens_arr[5].type.lower() + self.tokens_arr[7].text +' was selected from ' + self.tokens_arr[3].text + ' and sorted')
-                    if self.tokens_arr[4].type == 'ORDER_BY':
-                        if self.tokens_arr[6].type == 'ASC' or self.tokens_arr[6].type == 'DESC':
-                            print('All ' + self.tokens_arr[1].text + ' was selected from ' + self.tokens_arr[3].text + 'and sorted')
-        else:
-            self.error()
+                    table_name = self.tokens_arr[3].text
+                    for t in tables_arr:
+                        if t.tablename == table_name:
+                            table = t
+                            break
+                    if table:# Если таблица есть в массиве с таблицами
+                        if endindex >= 7:
+                            if self.tokens_arr[4].type == 'WHERE' and self.tokens_arr[5].type == 'VAR' and self.tokens_arr[7].type == 'STR' and \
+                                    (self.tokens_arr[6].type == 'EQUAL' or self.tokens_arr[6].type == 'NOT_EQUAL'):
+                                where=[self.tokens_arr[5], self.tokens_arr[6], self.tokens_arr[7]]
+                                if endindex > 7:
+                                    if self.tokens_arr[8].type == 'ORDER_BY':
+                                        if self.tokens_arr[9].type == 'VAR' and (self.tokens_arr[10].type == 'ASC' or self.tokens_arr[10].type == 'DESC'):
+                                            order=[self.tokens_arr[9].type, self.tokens_arr[10].type == 'DESC']
+                                            select_in_table(self.tokens_arr[1].type, table, where, order)
+                                        else:
+                                            print("ORDER_BY column_name [(ASC|DESC)]")
+                                    else:
+                                        print("After where ORDER_BY column_name [(ASC|DESC)]")
+                                else: select_in_table(self.tokens_arr[1].type, table, where, order)
+                            else:
+                                print("Error in where:   Where field ==/!= \"value\"")
+                        elif endindex == 6:
+                            if self.tokens_arr[4].type == 'ORDER_BY':
+                                if self.tokens_arr[5].type == 'VAR' and (self.tokens_arr[6].type == 'ASC' or self.tokens_arr[6].type == 'DESC'):
+                                    order=[self.tokens_arr[5], self.tokens_arr[6]]
+                                    select_in_table(self.tokens_arr[1].type, table, where, order)
+                                else:
+                                    print("ORDER_BY column_name (ASC|DESC)")
+                            else:
+                                print("ORDER_BY column_name [(ASC|DESC)]")
+                        else:
+                            select_in_table(self.tokens_arr[1].type, table, where, order)
+                    else:
+                        print(f"No table with name {table_name}")
+                else:
+                    print("Use VAR for tablename")
+            else:
+                print("U didnt selected table\n SELECT ( * | column_name [, ...])  FROM table_name # [WHERE condition]   [ORDER_BY column_name [(ASC|DESC)] [, ...] ];")
+        # some fields
+        elif self.tokens_arr[1].type=="VAR":
+            fromindex=False
+            for token in self.tokens_arr:
+                if token.type == 'FROM':
+                    fromindex=self.tokens_arr.index(token)
+                    break
+            if fromindex==False:
+                for i in range(0, endindex + 1):
+                    self.tokens_arr.pop(0)
+                return False
 
-    def start(self):
-        comand_length = len(self.tokens_arr)
-        if self.tokens_arr[0].type == 'CREATE TABLE':
-            self.create_table(comand_length)
-        elif self.tokens_arr[0].type == 'INSERT':
-            self.insert(comand_length)
-        elif self.tokens_arr[0].type == 'SELECT':
-            self.select(comand_length)
-        elif self.tokens_arr[0].type == "EXIT":
-            print("exit")
-            sys.exit()
-        elif self.tokens_arr[0].type=="SEMICOLON":
-            return "end"
-        elif len(self.tokens_arr) ==0:
-            return "empty"
-        else :
-            raise Exception("Unknown command "+str(self.tokens_arr[0].text)+ " "+ str(self.tokens_arr[1].text) +" use commands (only uppercase for commands)\'CREATE TABLE\' , \'INSERT\', \'SELECT\', \'EXIT\' ")
+            fields_arr=[]
+            for i in range(1, fromindex, 2): #val, val from
+                if self.tokens_arr[i].type == 'VAR' and self.tokens_arr[i+1].type == 'COMA':
+                    fields_arr.append(self.tokens_arr[i].text)
+                elif self.tokens_arr[i].type == 'VAR' and self.tokens_arr[i+1].type == 'FROM':
+                    fields_arr.append(self.tokens_arr[i].text)
+                else:
+                    print("error in enumeration of fields \n SELECT ( * | column_name [, ...])  FROM table_name # [WHERE condition]   [ORDER_BY column_name [(ASC|DESC)] [, ...] ];")
+            table_name=self.tokens_arr[fromindex+1].text
+            table = False
+            for t in tables_arr:
+                if t.tablename==table_name:
+                    table=t
+                    break
+            if table:
+                if endindex==fromindex+1:
+                    select_in_table(fields_arr, table, where, order)
+                index=fromindex+2  #index фактически индекс where or order by если они есть
+                if endindex<index+2:
+                    select_in_table(fields_arr,table_name,where,order)
+                    for i in range(0, endindex + 1):
+                        self.tokens_arr.pop(0)
+                        return
+                if index+3<=endindex:
+                    if self.tokens_arr[index].type == 'WHERE':
+                        if self.tokens_arr[index+1].type == 'VAR' and self.tokens_arr[index+3].type == 'STR' and \
+                                (self.tokens_arr[index+2].type == 'EQUAL' or self.tokens_arr[index+2].type == 'NOT_EQUAL'):
+                            where = [self.tokens_arr[index+1], self.tokens_arr[index+2], self.tokens_arr[index+3]]
+                        if index+6<=endindex:
+                            if self.tokens_arr[index+4].type == 'ORDER_BY':
+                                if self.tokens_arr[index+5].type == 'VAR' and (
+                                        self.tokens_arr[index+6].type == 'ASC' or self.tokens_arr[10].type == 'DESC'):
+                                    order = [self.tokens_arr[index+5], self.tokens_arr[index+6]]
+                                    select_in_table(fields_arr, table, where, order)
+                                    for i in range(0, endindex + 1):
+                                        self.tokens_arr.pop(0)
+                                    return
+                                else:
+                                    print("Error in order by \nORDER_BY column_name (ASC|DESC)")
+                            else:
+                                print("Error After where statement")
+                        else:
+                            return select_in_table(fields_arr, table, where, order)
+                if index+2==endindex:
+                    if self.tokens_arr[index].type == 'ORDER_BY':
+                        if self.tokens_arr[index+1].type == 'VAR' and (
+                                self.tokens_arr[index+2].type == 'ASC' or self.tokens_arr[index+2].type == 'DESC'):
+                            order = [self.tokens_arr[index+1], self.tokens_arr[index+2]]
+                            select_in_table(fields_arr, table, where, order)
+
+                        else:
+                            print("ORDER_BY column_name (ASC|DESC)")
+                    else:
+                        print("ORDER_BY column_name [(ASC|DESC)]")
+            else:
+                print(f"table named {table_name} not found ")
+
+        for i in range(0, endindex + 1):
+            self.tokens_arr.pop(0)
+
+    def delete(self,comand_length):
+        table_name=False
+        condition="ALL"
+        endindex = 0
+        if comand_length < 2:
+            print("Pattern: DELETE table_name [WHERE condition];")
+        elif self.tokens_arr[1].type == 'VAR':
+            for token in self.tokens_arr:
+                if token.type == ')':
+                    endindex = self.tokens_arr.index(token)
+                    break
+            table_name=self.tokens_arr[1].text
+            for t in tables_arr:
+                if t.tablename == table_name:
+                    table = t
+                    break
+            if table:
+                c=0
+        for i in range(0, endindex + 1):
+            self.tokens_arr.pop(0)
