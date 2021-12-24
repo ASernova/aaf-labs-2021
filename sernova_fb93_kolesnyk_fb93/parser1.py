@@ -355,7 +355,7 @@ class Parser(object):
             table_name=self.tokens_arr[1].text
             for t in tables_arr:
                 if t.tablename == table_name:
-                    table = self.tokens_arr[3]
+                    table = self.tokens_arr[1]
                     break
             if table:
                 if endindex==1:
