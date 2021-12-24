@@ -268,7 +268,7 @@ class Parser(object):
             table = False
             for t in tables_arr:
                 if t.tablename==table_name:
-                    table=t
+                    table=self.tokens_arr[fromindex+1]
                     break
             if table:
                 if endindex==fromindex+1:

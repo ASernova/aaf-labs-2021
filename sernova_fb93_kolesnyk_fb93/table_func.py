@@ -29,13 +29,15 @@ class Table:
     
     def __init__(self, name, columns_arr, index_arr):
         self.tablename = name
-        self.rows = []
+        self.column_arr = columns_arr
+        self.rows.clear()
         self.columns.clear()
         for i in range (0, len(columns_arr)):
             index_check = 0
             if i in index_arr:
                 index_check = 1
             self.columns.append(Column(columns_arr[i], index_check))
+        tables_arr.append(self)
     def get_name(self):
         return self.tablename
     def check_repeat(self, value, i):
@@ -80,28 +82,69 @@ class Table:
             self.rows.append(Row(row_values))
 
 
-def select_in_table(fields, table, where_statement, order_statement):
+def select_in_table(fields, tables, where_statement, order_statement):
+
     selected_columns = []
     selected_rows = []
     sel_ind = []
+    print('sssssssssss')
+    print(type(tables))
     for i in tables_arr:
-        if i.tablename == table.text:
+        if i.tablename == tables.text:
             curr_tab = i
+    type_of_selection = ''
+  #  print(type(tables))
     if fields == 'ALL':
+        type_of_selection = 'all'
+        # for i in tables_arr:
+        #     if i.tablename == tables.text:
+        #         curr_tab = i
         for i in range(0, len(curr_tab.columns)):
             selected_columns.append(curr_tab.columns[i].name)
-            sel_ind = [0]*len(selected_columns)
-    if where_statement == 0 and order_statement == 0:
-        selected_rows = curr_tab.rows
+            sel_ind.append(curr_tab.columns[i].indexed)
+
+        if where_statement == 0 and order_statement == 0:
+            selected_rows = curr_tab.rows
+
+
+    else:
+        type_of_selection = 'with_selection'
+        col_ind = []
+        print('type:')
+        print(type(tables))
+        #curr_tab = tables
+        for i in range(0, len(curr_tab.columns)):
+            if curr_tab.columns[i].name in fields:
+                selected_columns.append(curr_tab.columns[i].name)
+                sel_ind.append(curr_tab.columns[i].indexed)
+                col_ind.append(i)
+        for i in range(0, len(curr_tab.rows)):
+
+            if curr_tab.rows[i].is_null != 1:
+                row_val = []
+                for j in col_ind:
+                    row_val.append(curr_tab.rows[i].values[j])
+                selected_rows.append(row_val)
+
+
+
 
     sel_tab = Table('selectiom', selected_columns, sel_ind)
-    sel_tab.rows = selected_rows
+    if type_of_selection == 'all':
+        sel_tab.rows = selected_rows.copy()
+        print(len(sel_tab.rows))
+        print('here')
+    else:
+        for sel_row in selected_rows:
+            sel_tab.insertion(sel_row)
     col_names = []
+ #   print(type(sel_tab.rows[0]))
     for i in range(0, len(sel_tab.columns)):
         col_names.append(sel_tab.columns[i].name)
     print('SELECTION RESULT:')
     sel_tab.show_table()
 
+    print(len(tables_arr))
 
 def del_func(table,cond):
     for i in tables_arr:
