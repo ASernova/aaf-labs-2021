@@ -132,7 +132,34 @@ def select_in_table(fields, tables, where_statement, order_statement):
                 if eauel_cond == "==":
                     for index in indexes:
                         selected_rows.append(curr_tab.rows[index])
+                else:
+                    for i in range(0, len(curr_tab.rows)):
+                        if i not in indexes:
+                            selected_rows.append(curr_tab.rows[i])
 
+
+        if where_statement == 0 and type(order_statement) != bool:
+            col_for_cond = order_statement[0].text
+            if order_statement[1].text == 'ASC':
+                asc = 1
+            else: asc = 0
+            for col in curr_tab.columns:
+                if col.name == col_for_cond:
+                    column = deepcopy(col)
+                    col_id = curr_tab.columns.index(col)
+
+            if column.indexed == 1:
+                indexes = column.index_tree.inorder()
+                if asc == 1:
+                    for index in indexes:
+                        selected_rows.append(curr_tab.rows[index])
+                else:
+                    for index in indexes[::-1]:
+                        selected_rows.append(curr_tab.rows[index])
+            else:
+                selected_rows = sorted(curr_tab.rows, key=lambda Row: Row.values[col_id])
+                if asc == 0:
+                    selected_rows.reverse()
 
 
 

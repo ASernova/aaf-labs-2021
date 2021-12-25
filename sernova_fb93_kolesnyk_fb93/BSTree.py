@@ -26,21 +26,23 @@ class RedBlackTree():
 
     # Preorder
     def pre_order_helper(self, node):
-        if node != TNULL:
+        if node != self.TNULL:
             sys.stdout.write(node.item + " ")
             self.pre_order_helper(node.left)
             self.pre_order_helper(node.right)
 
     # Inorder
-    def in_order_helper(self, node):
-        if node != TNULL:
-            self.in_order_helper(node.left)
-            sys.stdout.write(node.item + " ")
-            self.in_order_helper(node.right)
+    def in_order_helper(self, node, ind_arr):
+        if node != self.TNULL:
+            self.in_order_helper(node.left, ind_arr)
+            #sys.stdout.write(node.item + " ")
+            ind_arr.append(node.index)
+            self.in_order_helper(node.right, ind_arr)
+        return ind_arr
 
     # Postorder
     def post_order_helper(self, node):
-        if node != TNULL:
+        if node != self.TNULL:
             self.post_order_helper(node.left)
             self.post_order_helper(node.right)
             sys.stdout.write(node.item + " ")
@@ -204,7 +206,7 @@ class RedBlackTree():
                 indent += "|    "
 
             s_color = "RED" if node.color == 1 else "BLACK"
-            print(str(node.item) + "(" + s_color + ")" + " ind: " + str(node.index))
+            print(str(node.item) + "(" + s_color + ")")
             self.__print_helper(node.left, indent, False)
             self.__print_helper(node.right, indent, True)
 
@@ -212,7 +214,9 @@ class RedBlackTree():
         self.pre_order_helper(self.root)
 
     def inorder(self):
-        self.in_order_helper(self.root)
+        ind_arr = []
+        indexes = self.in_order_helper(self.root, ind_arr)
+        return indexes
 
     def postorder(self):
         self.post_order_helper(self.root)
