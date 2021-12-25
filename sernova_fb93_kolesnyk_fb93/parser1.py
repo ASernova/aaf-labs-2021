@@ -298,7 +298,7 @@ class Parser(object):
                             else:
                                 print("Error After where statement")
                         else:
-                            return select_in_table(fields_arr, table, where, order)
+                            select_in_table(fields_arr, table, where, order)
                 if index+2==endindex:
                     if self.tokens_arr[index].type == 'ORDER_BY':
                         if self.tokens_arr[index+1].type == 'VAR' and (

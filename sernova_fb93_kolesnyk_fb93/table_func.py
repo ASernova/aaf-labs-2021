@@ -13,10 +13,12 @@ class Column:
             self.index_tree = RedBlackTree()
         elif self.indexed == 0:
             self.value_arr = []
+        
 
 class Row:
     def __init__(self, val_arr, is_null = 0):
         self.values = []
+        self.values.clear()
         self.is_null = is_null
         for i in range (0, len(val_arr)):
             self.values.append(val_arr[i])
@@ -28,6 +30,8 @@ class Table:
     tablename = ''
     
     def __init__(self, name, columns_arr, index_arr):
+        self.columns.clear()
+        self.rows.clear()
         self.tablename = name
         self.column_arr = columns_arr
         self.rows.clear()
@@ -84,7 +88,6 @@ class Table:
 
 def select_in_table(fields, tables, where_statement, order_statement):
 
-    print('selection')
     selected_columns = []
     selected_rows = []
     sel_ind = []
