@@ -83,6 +83,7 @@ class Table:
 
 
 def select_in_table(fields, tables, where_statement, order_statement):
+
     print('selection')
     selected_columns = []
     selected_rows = []
@@ -94,58 +95,17 @@ def select_in_table(fields, tables, where_statement, order_statement):
             curr_tab = deepcopy(i)
             continue
     if type(fields)==str:
-        type_of_selection = 'all'
+        type_of_selection = 'all'                                                   # SELECT * FROM
 
         for i in range(0, len(curr_tab.columns)):
             selected_columns.append(curr_tab.columns[i].name)
             sel_ind.append(curr_tab.columns[i].indexed)
 
-        if where_statement == 0 and order_statement == 0:
+        if where_statement == 0 and order_statement == 0:                           # реально просто SELECT * FROM
             selected_rows = curr_tab.rows.copy()
 
-        # if type(where_statement) != bool:
-        #
-        #     col_for_cond = where_statement[0].text
-        #     eauel_cond = where_statement[1].text
-        #     key = where_statement[2].text.replace('"', '')
-        #
-        #
-        #     for i in range(0, len(curr_tab.columns)):
-        #         if curr_tab.columns[i].name == col_for_cond:
-        #             column = deepcopy(curr_tab.columns[i])
-        #             col_id = i
-        #     # index = 0
-        #     indexes = []
-        #     ind_check = 0
-        #     if column.indexed == 1:
-        #
-        #         while ind_check == 0:
-        #             index = column.index_tree.searchTree(key).index
-        #
-        #             if index != -1:
-        #                 indexes.append(index)
-        #                 column.index_tree.delete_node(key)
-        #             else:
-        #                 ind_check = 1
-        #
-        #
-        #     else:
-        #
-        #         for i in range(0, len(curr_tab.rows)):
-        #             if curr_tab.rows[i].values[col_id] == key:
-        #                 selected_rows.append(curr_tab.rows[i])
-        #
-        #     if eauel_cond == "==":
-        #         for index in indexes:
-        #             selected_rows.append(curr_tab.rows[index])
-        #     else:
-        #         for i in range(0, len(curr_tab.rows)):
-        #             if i not in indexes:
-        #                 selected_rows.append(curr_tab.rows[i])
 
-
-
-        if where_statement == 0 and type(order_statement) != bool:
+        if where_statement == 0 and type(order_statement) != bool:              # SELECT * FROM ORDER_BY
             col_for_cond = order_statement[0].text
             if order_statement[1].text == 'ASC':
                 asc = 1
@@ -155,7 +115,7 @@ def select_in_table(fields, tables, where_statement, order_statement):
                     column = col
                     col_id = curr_tab.columns.index(col)
 
-            if column.indexed == 1:
+            if column.indexed == 1:                                                        # индексированый ORDER_BY
                 indexes = column.index_tree.inorder()
                 if asc == 1:
                     for index in indexes:
@@ -163,7 +123,7 @@ def select_in_table(fields, tables, where_statement, order_statement):
                 else:
                     for index in indexes[::-1]:
                         selected_rows.append(curr_tab.rows[index])
-            else:
+            else:                                                                               #  неиндексированый ORDER_BY
                 selected_rows = sorted(curr_tab.rows, key=lambda Row: Row.values[col_id])
                 if asc == 0:
                     selected_rows.reverse()
@@ -189,7 +149,7 @@ def select_in_table(fields, tables, where_statement, order_statement):
                 select_indexes.append(i)
 
 
-    if type(where_statement) != bool:
+    if type(where_statement) != bool:                                       # SELECT smth FROM smwh WHERE a == b
 
         col_for_cond = where_statement[0].text
         equel_cond = where_statement[1].text
@@ -208,7 +168,7 @@ def select_in_table(fields, tables, where_statement, order_statement):
         # index = 0
         where_indexes = []
         ind_check = 0
-        if where_column.indexed == 1:
+        if where_column.indexed == 1:                                               # работа с индексами
 
             while ind_check == 0:
                 index = where_column.index_tree.searchTree(key).index
@@ -220,33 +180,35 @@ def select_in_table(fields, tables, where_statement, order_statement):
                     ind_check = 1
 
 
-        else:
+        else:                                                                   #без индексов
 
             for i in range(0, len(curr_tab.rows)):
                 if curr_tab.rows[i].values[col_id] == key:
                     where_indexes.append(i)
                     if type_of_selection == 'all':
                         selected_rows.append(curr_tab.rows[i])
-        if type_of_selection == 'all':
+
+
+        if type_of_selection == 'all':              #SELECT * FROM smwh WHERE ....
             selected_rows.clear()
             if equel_cond == "==":
                 for index in where_indexes:
                     selected_rows.append(curr_tab.rows[index])
-            else:
+            else:                                           #SELECT SMTH FROM smwh WHERE ....
                 for i in range(0, len(curr_tab.rows)):
                     if i not in where_indexes:
                         selected_rows.append(curr_tab.rows[i])
 
 
 
-    sel_tab = Table('selection', selected_columns, sel_ind)                       ### Table
+    sel_tab = Table('selection', selected_columns, sel_ind)                       ### новая табличка для вывода и махинаций
 
 
     if type_of_selection == 'all':
         for sel_row in selected_rows:
-            sel_tab.insertion(sel_row.values)
+            sel_tab.insertion(sel_row.values)               #зполняем
 
-        if type(order_statement) != bool:
+        if type(order_statement) != bool:                   # корректирукм с ORDER_BY
             order_col_name = order_statement[0].text
             if order_statement[1].text == 'ASC':
                 asc = 1
@@ -277,42 +239,8 @@ def select_in_table(fields, tables, where_statement, order_statement):
         if type(where_statement) == bool:
             for sel_row in selected_rows:
                 sel_tab.insertion(sel_row)
-            if type(order_statement) != bool:
-                col_for_cond = order_statement[0].text
-                if order_statement[1].text == 'ASC':
-                    asc = 1
-                else:
-                    asc = 0
-                for col in sel_tab.columns:
-                    if col.name == col_for_cond:
-                        column = deepcopy(col)
-                        col_id = sel_tab.columns.index(col)
 
-                print(column.indexed)
-                if column.indexed == 1:
-
-                    indexes = column.index_tree.inorder()
-                    if asc == 1:
-                        for index in indexes:
-                            selected_rows.append(sel_tab.rows[index])
-                    else:
-                        for index in indexes[::-1]:
-                            selected_rows.append(sel_tab.rows[index])
-                else:
-                    print(str(col_id) + 'sssssssssss')
-                    selected_rows = sorted(sel_tab.rows, key=lambda Row: Row.values[col_id])
-
-                    if asc == 0:
-                        selected_rows.reverse()
-
-                    sel_tab.rows.clear()
-                    sel_tab.rows = selected_rows
-
-                ####
-
-
-
-        elif type(where_statement) != bool:
+        elif type(where_statement) != bool:             # SELECT * WHERE
             for i in range (0, len(select_indexes)):
 
                 if where_statement[1].text == '==':
@@ -322,6 +250,35 @@ def select_in_table(fields, tables, where_statement, order_statement):
                     if (select_indexes[i] in where_indexes) == False:
                         sel_tab.insertion(selected_rows[i])
 
+        if type(order_statement) != bool:                               #SELECT * (WHERE) ORDER_BY
+            col_for_cond = order_statement[0].text
+            if order_statement[1].text == 'ASC':
+                asc = 1
+            else:
+                asc = 0
+            for col in sel_tab.columns:
+                if col.name == col_for_cond:
+                    column = deepcopy(col)
+                    col_id = sel_tab.columns.index(col)
+
+            if column.indexed == 1:
+
+                indexes = column.index_tree.inorder()
+                if asc == 1:
+                    for index in indexes:
+                        selected_rows.append(sel_tab.rows[index])
+                else:
+                    for index in indexes[::-1]:
+                        selected_rows.append(sel_tab.rows[index])
+            else:
+
+                selected_rows = sorted(sel_tab.rows, key=lambda Row: Row.values[col_id])
+
+                if asc == 0:
+                    selected_rows.reverse()
+
+                sel_tab.rows.clear()
+                sel_tab.rows = selected_rows
 
     col_names = []
 
