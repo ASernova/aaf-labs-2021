@@ -274,11 +274,11 @@ class Parser(object):
                 if endindex==fromindex+1:
                     select_in_table(fields_arr, table, where, order)
                 index=fromindex+2  #index фактически индекс where or order by если они есть
-                if endindex<index+2:
-                    select_in_table(fields_arr,table_name,where,order)
-                    for i in range(0, endindex + 1):
-                        self.tokens_arr.pop(0)
-                        return
+                # if endindex<index+2:
+                #     select_in_table(fields_arr,table_name,where,order)
+                #     for i in range(0, endindex + 1):
+                #         self.tokens_arr.pop(0)
+                #         return
                 if index+3<=endindex:
                     if self.tokens_arr[index].type == 'WHERE':
                         if self.tokens_arr[index+1].type == 'VAR' and self.tokens_arr[index+3].type == 'STR' and \
