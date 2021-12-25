@@ -169,7 +169,7 @@ def select_in_table(fields, tables, where_statement, order_statement):
                     selected_rows.reverse()
 
 
-    else:
+    else:                                                                                     ##### SELECT что-то FROM
         type_of_selection = 'with_selection'
         col_ind = []
 
@@ -177,6 +177,7 @@ def select_in_table(fields, tables, where_statement, order_statement):
             if curr_tab.columns[i].name in fields:
                 selected_columns.append(curr_tab.columns[i].name)
                 sel_ind.append(curr_tab.columns[i].indexed)
+
                 col_ind.append(i)
         for i in range(0, len(curr_tab.rows)):
 
@@ -194,7 +195,7 @@ def select_in_table(fields, tables, where_statement, order_statement):
         equel_cond = where_statement[1].text
         key = where_statement[2].text.replace('"', '')
 
-        
+
         # where_column = Column(0, 0)
         # col_id = 0
         #только для бесконечного цикла
@@ -238,7 +239,7 @@ def select_in_table(fields, tables, where_statement, order_statement):
 
 
 
-    sel_tab = Table('selection', selected_columns, sel_ind)
+    sel_tab = Table('selection', selected_columns, sel_ind)                       ### Table
 
 
     if type_of_selection == 'all':
@@ -276,6 +277,41 @@ def select_in_table(fields, tables, where_statement, order_statement):
         if type(where_statement) == bool:
             for sel_row in selected_rows:
                 sel_tab.insertion(sel_row)
+            if type(order_statement) != bool:
+                col_for_cond = order_statement[0].text
+                if order_statement[1].text == 'ASC':
+                    asc = 1
+                else:
+                    asc = 0
+                for col in sel_tab.columns:
+                    if col.name == col_for_cond:
+                        column = deepcopy(col)
+                        col_id = sel_tab.columns.index(col)
+
+                print(column.indexed)
+                if column.indexed == 1:
+
+                    indexes = column.index_tree.inorder()
+                    if asc == 1:
+                        for index in indexes:
+                            selected_rows.append(sel_tab.rows[index])
+                    else:
+                        for index in indexes[::-1]:
+                            selected_rows.append(sel_tab.rows[index])
+                else:
+                    print(str(col_id) + 'sssssssssss')
+                    selected_rows = sorted(sel_tab.rows, key=lambda Row: Row.values[col_id])
+
+                    if asc == 0:
+                        selected_rows.reverse()
+
+                    sel_tab.rows.clear()
+                    sel_tab.rows = selected_rows
+
+                ####
+
+
+
         elif type(where_statement) != bool:
             for i in range (0, len(select_indexes)):
 
